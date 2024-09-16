@@ -1,0 +1,47 @@
+<html>
+    <head>
+        <style>
+            body, html { 
+                background-color: #d3d3d3;
+                height: 100%;
+                margin: 0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                flex-direction: column;
+            }
+            .healthDiv {
+                display: flex;
+                align-items: center;
+            }
+        </style>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    </head>
+    <body>
+        <div class="healthDiv">
+            <p style="display: inline; margin-right: 5px;">Health Status:</p>
+            <p id="statusText" style="display: inline; color: #FFFF00;">Unknown</p>
+        </div>
+        <button id="healthButton">Get Health</button>
+
+        <script>
+            const api_endpoint = "http://127.0.0.1:3000";
+
+            $("#healthButton").on("click", async function () {
+                try {
+                    const response = await fetch(`${api_endpoint}/health`, {
+                        method: "GET"
+                    });
+
+                    if (!response.ok) {
+                        $("#statusText").text("Down").css("color", "red")
+                    }
+
+                    $("#statusText").text("Up").css("color", "green")
+                } catch (e) {
+                    $("#statusText").text("Down").css("color", "red")
+                }
+            })
+        </script>
+    </body>
+</html>
