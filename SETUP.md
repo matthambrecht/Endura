@@ -4,5 +4,4 @@
     a. Windows: `.\venv\Scripts\activate`
     b. Linux: `. venv/bin/activate`
 3. Run `pip3 install -r requirements.txt` to get the requirements for the api.
-4. Start the API with `uvicorn app:app --workers=6 --port 3000 --log-config=log_conf.yaml --reload` in the `api` directory.
-5. To ensure the api is up and running properly open `health.html` and hit the "Get Health" button. You can kill the api with CTRL+C.
+4. Start the API with `python3 app.py` in the `app` directory.
