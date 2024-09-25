@@ -1,6 +1,7 @@
 import logging
 
-from flask import Flask, request, redirect, url_for, render_template
+from flask_toastr import Toastr
+from flask import Flask, request, redirect, url_for, render_template, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import (
     UserMixin,
@@ -20,6 +21,8 @@ db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 bcrypt = Bcrypt(app)
+toastr = Toastr(app)
+toastr.init_app(app)
 app.logger.setLevel(logging.INFO)
 
 # Database Schemas
@@ -50,15 +53,20 @@ def dashboard():
 @app.route("/create_user", methods=["GET", "POST"])  # Create user page and endpoint
 def create_user():
     if request.method == "POST":  # On send create user request
-        username = request.form["username"]
+        username = request.form["username"].lower()
         password = request.form["password"]
-        password_hash = bcrypt.generate_password_hash(password).decode("utf-8")
 
-        query = User(username=username, password_hash=password_hash)
-        db.session.add(query)
-        db.session.commit()
+        if not User.query.filter_by(username=username).first():
+            password_hash = bcrypt.generate_password_hash(password).decode("utf-8")
 
-        return redirect(url_for("dashboard"))
+            query = User(username=username, password_hash=password_hash)
+            db.session.add(query)
+            db.session.commit()
+
+            flash("Account created!", 'success')
+            return redirect(url_for("dashboard"))
+        else:
+            flash("Username taken!", 'error')
 
     return render_template("create_user.html")
 
@@ -66,13 +74,16 @@ def create_user():
 @app.route("/login", methods=["GET", "POST"])  # Login page and endpoint
 def login():
     if request.method == "POST":
-        username = request.form["username"]
+        username = request.form["username"].lower()
         password = request.form["password"]
         user = User.query.filter_by(username=username).first()
 
         if user and bcrypt.check_password_hash(user.password_hash, password):
             login_user(user)
+            flash("Logged in!", 'success')
             return redirect(url_for("dashboard"))
+        else:
+            flash("Account doesn't exist or incorrect password", 'error')
 
     return render_template("login.html")
 
@@ -83,7 +94,6 @@ def logout():
     logout_user()
     return redirect(url_for("login"))
 ## End Account Management Methods
-
 
 if __name__ == "__main__":
     with app.app_context():

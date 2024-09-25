@@ -5,3 +5,4 @@ flask
 flask-login
 flask_sqlalchemy
 flask_bcrypt
+flask_toastr
