@@ -1,6 +1,4 @@
-fastapi
 pyyaml
-uvicorn
 flask
 flask-login
 flask_sqlalchemy
