@@ -1,6 +1,7 @@
 import logging
 import datetime
 
+from sqlalchemy import Text
 from flask_toastr import Toastr
 from flask import Flask, request, redirect, url_for, render_template, flash
 from flask_sqlalchemy import SQLAlchemy
@@ -67,6 +68,9 @@ class Profile(db.Model):
         nullable=True)
     age = db.Column(
         db.Integer,
+        nullable=True)
+    gender = db.Column(
+        Text,
         nullable=True)
     
     # Many Workouts -> One Profile
@@ -187,12 +191,26 @@ def create_workout(): # Action for the create workout button
         print("Exists")
         return None
 
-
+## Begin Utils
+def get_profile():
+    profile = Profile.query.filter_by(user_id=current_user.id).first()
+    
+    if profile:
+        return {
+            "feet": int(profile.height // 12) if profile.height else None,
+            "inches": int(profile.height % 12) if profile.height else None,
+            "weight": profile.weight if profile.weight else None,
+            "age": int(profile.age) if profile.age else None,
+            "gender": profile.gender if profile.gender else None,
+        }
+    else:
+        return None
+## End Utils
+    
 ## Begin Views
 @login_manager.user_loader
 def load_user(user_id: int):
     return User.query.get(int(user_id))
-
 
 @app.route("/")
 def dashboard():
@@ -203,9 +221,49 @@ def dashboard():
 ## End Views
 
 ## Begin Account Management Methods
+@app.route("/profile", methods=["GET", "POST"])
+@login_required
+def profile():
+    if request.method == "POST":
+        try:
+            feet = int(request.form["feet"])
+            inches = int(request.form["inches"])
+            age = int(request.form["age"])
+            weight = float(request.form["weight"])
+            gender = request.form["gender"]
+
+            profile = get_profile()
+
+            if profile:     # Update
+                profile = Profile.query.filter_by(user_id=current_user.id).first()
+                profile.height = feet * 12 + inches
+                profile.weight = weight
+                profile.age = age
+                profile.gender = gender
+            else:   # Create
+                profile = Profile(
+                    user_id=current_user.id,
+                    height=feet * 12 + inches,
+                    weight=weight,
+                    age=age,
+                    gender=gender
+                )
+
+            db.session.add(profile)
+            db.session.commit()
+
+            flash("Profile updated successfully", 'success')
+        except (ValueError, TypeError):
+            flash(f"Make sure profile values are of the proper type prior to submitting", 'error')
+        except Exception as e:
+            app.logger.warning(e)
+            flash(f"We ran across an issue on our end")
+
+    return render_template("profile.html", profile=get_profile())
+
+
 @app.route("/create_user", methods=["GET", "POST"])  # Create user page and endpoint
 def create_user():
-    create_workout()
     if request.method == "POST":  # On send create user request
         username = request.form["username"].lower()
         password = request.form["password"]
