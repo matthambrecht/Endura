@@ -257,9 +257,39 @@ def profile():
             flash(f"Make sure profile values are of the proper type prior to submitting", 'error')
         except Exception as e:
             app.logger.warning(e)
-            flash(f"We ran across an issue on our end")
+            flash(f"We ran across an issue on our end", 'error')
 
     return render_template("profile.html", profile=get_profile())
+
+
+@app.route("/update_password", methods=["POST"])
+def update_password():
+    if request.method == "POST":
+        old_password = request.form["old_password"]
+        new_password = request.form["new_password"]
+        confirm_password = request.form["confirm_password"]
+        user = User.query.filter_by(id=current_user.id).first()
+
+        if user and bcrypt.check_password_hash(user.password_hash, old_password):
+            if new_password != confirm_password:
+                flash(f"Passwords do not match", 'error')
+            elif len(new_password) < 2 or len(new_password) > 16:
+                flash(f"Passwords must be between 2 and 16 characters", 'error')
+            else:
+                user.password_hash = bcrypt.generate_password_hash(new_password).decode("utf-8")
+                db.session.add(user)
+                db.session.commit()
+
+                flash(f"Password changed successfully", 'success')
+        else:
+            flash(f"The old password is incorrect", 'error')
+    
+    return redirect(url_for('manage_account'))
+
+
+@app.route("/manage_account")
+def manage_account():
+    return render_template("manage_account.html")
 
 
 @app.route("/create_user", methods=["GET", "POST"])  # Create user page and endpoint
