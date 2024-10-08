@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
-{% block title %}Login{% endblock %}
+{% block title %}Account Management{% endblock %}
 {% block page_body %}
-<div class="login-container col-md-6 offset-md-3">
+<div class="manage-container col-md-6 offset-md-3">
     <h2 class="text-center">Change Password</h2>
     <form method="post" action="/update_password">
         <div class="form-group">
@@ -24,7 +24,7 @@
         background-color: #d9ead3; /* Background color */
     }
 
-    .login-container {
+    .manage-container {
         margin-top: 100px; /* Center the form vertically */
         padding: 20px; /* Padding */
         background-color: rgba(243, 243, 243, 0.5); /* White background with transparency */
@@ -39,16 +39,6 @@
 
     .custom-btn:hover {
         background-color: #81a781; /* Darker shade for hover effect */
-    }
-
-    .register-link {
-        color: #666666; /* Change to your desired color */
-        text-decoration: none; /* Remove underline */
-    }
-
-    .register-link:hover {
-        color: Black; /* Darker shade on hover */
-        text-decoration: underline; /* Underline on hover */
     }
 </style>
 {% endblock %}
