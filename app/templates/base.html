@@ -1,32 +1,131 @@
 <!DOCTYPE html>
 <html lang="en">
-   <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta http-equiv="X-UA-Compatible" content="ie=edge">
-      <title>{% block title %} Endura {% endblock %}</title>
-      {% block head %}
-      <!-- Universal includes for all templates go here -->
-      <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-      {{ toastr.include_jquery() }}
-      {{ toastr.include_toastr_css() }}
-      {{ toastr.message() }}
-      {% endblock %}
-   </head>
-   <body>
-      <!-- This is where the universal header/navbar -->
-      <div class="container">
-         {{ toastr.include_toastr_js() }}
-         {% block page_body %}
-         <div class="row">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>{% block title %} Endura {% endblock %}</title>
+    {% block head %}
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    
+    <!-- Link to google fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet">
+    
+    {{ toastr.include_jquery() }}
+    {{ toastr.include_toastr_css() }}
+    {{ toastr.message() }}
+    <style>
+        body {
+            background-color: #d9ead3; /* Desired background color */
+        }
+        
+        .navbar {
+            background-color: #f3f3f3; /* Desired navbar color */
+            height: 90px; /* Set desired height */
+            align-items: center; /* Center the items vertically */
+        }
+
+        .navbar-brand {
+            font-family: 'Caveat', cursive; /* Change font family */
+            font-size: 2.5rem; /* Change font size */
+            display: flex;
+            align-items: center;
+            color: #b1b0b0 !important; /* 'ndura' text color */
+            font-style: italic; /* Make text italic */
+        }
+
+        .navbar-brand img {
+            height: 90px; /* Set the height of the logo */
+            width: auto; /* Maintain aspect ratio */
+            margin-right: -8px; /* Space between logo and text */
+            opacity: 0.5; /* Logo opacity */
+        }  
+
+        .sidebar {
+            height: 100vh; /* Full height */
+            position: fixed; /* Fixed sidebar */
+            left: 0;
+            top: 90px; /* Below the navbar */
+            width: 200px; /* Sidebar width */
+            background-color: rgba(243, 243, 243, 0.5); /* Sidebar background color */
+            padding-top: 5px; /* Top padding */
+        }
+
+        .sidebar a {
+            padding: 10px 15px; /* Link padding */
+            font-size: 1.1rem; /* Font size */
+        }
+
+        .sidebar a:hover {
+            background-color: #f3f3f3; /* Hover color */
+        }
+
+        .sidebar .nav-link {
+            color: #666666; /* Sidebar text color */
+        }
+        
+        .sidebar-divider {
+            margin: 0; /* Remove default margins */
+            border: 0; /* Remove default border */
+            border-top: 2px solid #999999; /* Line color and thickness */
+            margin-top: 5px; /* Space above the line */
+            margin-bottom: 5px; /* Space below the line */
+        }
+
+        .main-content {
+            margin-left: 220px; /* Adjust margin for the sidebar */
+            padding: 20px; /* Padding for the main content */
+        }
+    </style>
+    {% endblock %}
+</head>
+<body>
+    <!-- Top Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+         <a class="navbar-brand" href="{{ url_for('dashboard') }}">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Endura Logo">
+            NDURA
+        </a>
+    </nav>
+
+    {% if current_user.is_authenticated %}
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('dashboard') }}">Workout Dashboard</a>
+            </li>
+            <hr class="sidebar-divider">
+            <li class="nav-item">
+                <span class="nav-link disabled">Overall Stats</span>
+            </li>
+            <hr class="sidebar-divider">
+            <li class="nav-item">
+                <span class="nav-link disabled">Profile</span>
+            </li>
+            <hr class="sidebar-divider">
+            <li class="nav-item">
+                <span class="nav-link disabled">Account Management</span>
+            </li>
+            <hr class="sidebar-divider">
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+            </li>  
+        </ul>
+    </div>
+    {% endif %}
+
+    <div class="container mt-4">
+        {{ toastr.include_toastr_js() }}
+        {% block page_body %}
+        <div class="row">
             <!-- This is where page content would go -->
-         </div>
-         {% endblock %}
-      </div>
-      <!-- This is where a footer would go -->
-      {% block tail%}
-      <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-      <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
-      {% endblock %}
-   </body>
+        </div>
+        {% endblock %}
+    </div>
+    {% block tail %}
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+    {% endblock %}
+</body>
 </html>

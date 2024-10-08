@@ -1,15 +1,63 @@
 {% extends 'base.html' %}
-{% block title %}Create Account{% endblock %}
+{% block title %}Sign Up{% endblock %}
 {% block page_body %}
-    <div>
-        <h2>Create Account</h2>
-        <form method="post">
+<div class="login-container col-md-6 offset-md-3">
+    <h2 class="text-center">Sign Up</h2>
+    <form method="post">
+        <div class="form-group">
             <label for="username">Username:</label>
-            <input type="text" name="username" required />
+            <input type="text" class="form-control" name="username" required />
+        </div>
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" class="form-control" name="email" required />
+        </div>
+        <div class="form-group">
             <label for="password">Password:</label>
-            <input type="password" name="password" required />
-            <button type="submit">Create</button>
-        </form>
-        <a href="{{url_for('login')}}">Already have an account? Login</a>
-    </div>
+            <input type="password" class="form-control" name="password" required />
+        </div>
+        <div class="form-group">
+            <label for="confirm_password">Confirm Password:</label>
+            <input type="password" class="form-control" name="confirm_password" required />
+        </div>
+        <button type="submit" class="btn custom-btn btn-block">Sign Up</button>
+    </form>
+    <p class="text-center mt-3">
+        <a href="{{ url_for('login') }}" class="register-link">Already have an account? Login here</a>
+    </p>
+</div>
+
+<style>
+    body {
+        background-color: #d9ead3; /* Background color */
+    }
+
+    .login-container {
+        margin-top: 100px; /* Center the form vertically */
+        padding: 20px; /* Padding */
+        background-color: rgba(243, 243, 243, 0.5); /* Background with transparency */
+        border-radius: 10px; /* Rounded corners */
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    }
+
+    .custom-btn {
+        background-color: #d2e2cb; /* Button background color */
+        color: Black; /* Text color */
+    }
+
+    .custom-btn:hover {
+        background-color: #81a781; /* Darker shade for hover effect */
+    }
+
+    .register-link {
+        color: #666666; /* Link color */
+        text-decoration: none; /* Remove underline */
+    }
+
+    .register-link:hover {
+        color: Black; /* Darker shade on hover */
+        text-decoration: underline; /* Underline on hover */
+    }
+</style>
 {% endblock %}
+
