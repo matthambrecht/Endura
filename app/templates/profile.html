@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}Profile{% endblock %}
+{% block page_body %}
+<div class="profile-container col-md-6 offset-md-3">
+    <h2 class="text-center">Profile</h2>
+    <form method="post">
+        <div class="input-group">
+                <label for="feet">Height:</label>
+                <input type="number" class="form-control" name="feet" value="{{ profile.feet }}" required />
+                <p>ft</p>
+                <input type="number" class="form-control" name="inches" value="{{ profile.inches }}" required />
+                <p>in</p>
+        </div>
+        <div class="input-group">
+            <label for="weight">Weight:</label>
+            <input type="text" class="form-control" name="weight" value="{{ profile.weight }}" required />
+        </div>
+        <div class="input-group">
+            <label for="age">Age:</label>
+            <input type="number" class="form-control" name="age" value="{{ profile.age }}" required />
+        </div>
+        <div class="input-group">
+            <label for="gender">Gender:</label>
+            <input type="text" class="form-control" name="gender" value="{{ profile.gender }}" required />
+        </div>
+        <button type="submit" class="btn custom-btn btn-block">Update Profile</button>
+    </form>
+</div>
+
+<style>
+    body {
+        background-color: #d9ead3; /* Background color */
+    }
+
+    .profile-container {
+        margin-top: 100px; /* Center the form vertically */
+        padding: 20px; /* Padding */
+        background-color: rgba(243, 243, 243, 0.5); /* White background with transparency */
+        border-radius: 10px; /* Rounded corners */
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    }
+
+    .custom-btn {
+        background-color: #d2e2cb; /* Change to your desired color */
+        color: Black; /* Text color */
+    }
+
+    .custom-btn:hover {
+        background-color: #81a781; /* Darker shade for hover effect */
+    }
+</style>
+{% endblock %}
+

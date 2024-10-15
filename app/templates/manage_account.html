@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Account Management{% endblock %}
+{% block page_body %}
+<div class="manage-container col-md-6 offset-md-3">
+    <h2 class="text-center">Change Password</h2>
+    <form method="post" action="/update_password">
+        <div class="form-group">
+            <label for="old_password">Old Password:</label>
+            <input type="password" class="form-control" name="old_password" required />
+        </div>
+        <div class="form-group">
+            <label for="password">New Password:</label>
+            <input type="password" class="form-control" name="new_password" required />
+        </div>
+        <div class="form-group">
+            <label for="confirm_password">Confirm Password:</label>
+            <input type="password" class="form-control" name="confirm_password" required />
+        </div>
+        <button type="submit" class="btn custom-btn btn-block">Update</button>
+    </form>
+</div>
+<style>
+    body {
+        background-color: #d9ead3; /* Background color */
+    }
+
+    .manage-container {
+        margin-top: 100px; /* Center the form vertically */
+        padding: 20px; /* Padding */
+        background-color: rgba(243, 243, 243, 0.5); /* White background with transparency */
+        border-radius: 10px; /* Rounded corners */
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    }
+
+    .custom-btn {
+        background-color: #d2e2cb; /* Change to your desired color */
+        color: Black; /* Text color */
+    }
+
+    .custom-btn:hover {
+        background-color: #81a781; /* Darker shade for hover effect */
+    }
+</style>
+{% endblock %}
+
