@@ -227,10 +227,26 @@ def profile():
     if request.method == "POST":
         try:
             feet = int(request.form["feet"])
+            if feet < 3 or feet > 8:
+                flash("Feet must be between 3 and 8", 'error')
+                return redirect(url_for("profile"))
             inches = int(request.form["inches"])
+            if inches < 0 or inches > 11:
+                flash("Inches must be between 0 and 11", 'error')
+                return redirect(url_for("profile"))
             age = int(request.form["age"])
+            if age < 5 or age > 100:
+                flash("Age must be between 5 and 100", 'error')
+                return redirect(url_for("profile"))
             weight = float(request.form["weight"])
+            if weight < 45 or weight > 600:
+                flash("Enter Valid Weight in Lbs", 'error')
+                return redirect(url_for("profile"))
             gender = request.form["gender"]
+            if gender not in ["M","F"]: 
+                flash("Gender must be M or F", 'error')
+                return redirect(url_for("profile"))
+
 
             profile = get_profile()
 
