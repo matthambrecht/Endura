@@ -2,7 +2,135 @@
 {% block title %}Workout Dashboard{% endblock %}
 {% block page_body %}
 <div class="col-md-8 offset-md-2">
-    <h2>Your Workout Dashboard</h2>
-    <p>This is where you can track your workouts, view progress, and more!</p>
+   <h2>Your Workout Dashboard</h2>
+   <button id="createWorkout">Create Workout</button>
+   {% if workouts %}
+   <ul>
+      {% for workout in workouts|sort(attribute="day", reverse=True) %}
+      <li>
+         <strong>{{ workout.day }} - Workout ID: {{ workout.id }}</strong>
+         <ul>
+            {% if workout.exercises %}
+            {% for exercise in workout.exercises %}
+            <li>
+               <strong>{{ exercise.name }}</strong> 
+               (Type: {{ exercise.workout_type }})
+               {% if exercise.workout_type == 'lift' %}
+               - {{ exercise.weight }} lbs, {{ exercise.reps }} reps x {{ exercise.sets }} sets
+               {% elif exercise.workout_type == 'cardio' %}
+               - Duration: {{ exercise.duration }} minutes
+               {% endif %}
+            </li>
+            {% endfor %}
+            {% else %}
+            <li>No exercises found for this workout.</li>
+            {% endif %}
+         </ul>
+      </li>
+      {% endfor %}
+   </ul>
+   {% else %}
+   <p>This is where you can track your workouts, view progress, and more!</p>
+   {% endif %}
+   <script> 
+      // sort these by descending. each workout is grouped as a day
+      // then each day contains a list of exercises. store all of these parts
+      const workouts = {{ workouts | tojson }}.sort((a, b) => b.day - a.day);
+      
+      $(document).ready(function() {
+          // Create Workout Button Event
+          $("#createWorkout").click(function() {
+              fetch("{{ url_for('create_workout') }}", {
+                  method: "POST",
+                  headers: {
+                      "Content-Type": "application/json"
+                  }
+              }).then(response => response.json())
+              .then(data => {
+                  (data.status == 200) ? toastr.success(data.msg) : toastr.error(data.msg);
+              })
+          })
+      })
+      
+      function addExercise(workout_id, name, workout_type, weight=0, sets=0, reps=0, duration=0) {
+          const exercise_data = {
+              workout_id: workout_id,
+              name: name,
+              workout_type: workout_type,
+              weight: weight,
+              sets: sets,
+              reps: reps,
+              duration: duration
+          };
+      
+          // Send the POST request to the API
+          fetch("/api/create_exercise", {
+              method: "POST",
+              headers: {
+                  "Content-Type": "application/json"
+              },
+              body: JSON.stringify(exercise_data)
+          }).then(response => response.json())
+          .then(data => {
+              (data.status == 200) ? toastr.success(data.msg) : toastr.error(data.msg);
+          });
+      }
+      
+      function updateExercise(workout_id, exercise_id, name, workout_type, weight, sets, reps, duration) {
+          const exercise_data = {
+              workout_id: workout_id,
+              exercise_id: exercise_id,
+              exercise_name: name,
+              workout_type: workout_type,
+              weight: weight,
+              sets: sets,
+              reps: reps,
+              duration: duration
+          };
+      
+          fetch("/api/update_exercise", {
+              method: "POST",
+              headers: {
+                  "Content-Type": "application/json"
+              },
+              body: JSON.stringify(exercise_data)
+          }).then(response => response.json())
+          .then(data => {
+              (data.status == 200) ? toastr.success(data.msg) : toastr.error(data.msg);
+          });
+      }
+      
+      function deleteExercise(exercise_id) {
+          fetch("/api/delete_exercise", {
+              method: "POST",
+              headers: {
+                  "Content-Type": "application/json"
+              },
+              body: JSON.stringify({ exercise_id: exercise_id })
+          })
+          .then(response => response.json())
+          .then(data => {
+              if (data.status === 200) {
+                  toastr.success(data.msg);
+              } else {
+                  toastr.error(data.msg);
+              }
+          })
+      }
+      
+      function deleteWorkout(workout_id) {
+          fetch("/api/delete_workout", {
+              method: "POST",
+              headers: {
+                  "Content-Type": "application/json"
+              },
+              body: JSON.stringify({ workout_id: workout_id })
+          })
+          .then(response => response.json())
+          .then(data => {
+              (data.status == 200) ? toastr.success(data.msg) : toastr.error(data.msg);
+          });
+      }
+   </script>
 </div>
 {% endblock %}
