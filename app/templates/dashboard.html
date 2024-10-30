@@ -2,135 +2,374 @@
 {% block title %}Workout Dashboard{% endblock %}
 {% block page_body %}
 <div class="col-md-8 offset-md-2">
-   <h2>Your Workout Dashboard</h2>
-   <button id="createWorkout">Create Workout</button>
-   {% if workouts %}
-   <ul>
-      {% for workout in workouts|sort(attribute="day", reverse=True) %}
-      <li>
-         <strong>{{ workout.day }} - Workout ID: {{ workout.id }}</strong>
-         <ul>
-            {% if workout.exercises %}
-            {% for exercise in workout.exercises %}
-            <li>
-               <strong>{{ exercise.name }}</strong> 
-               (Type: {{ exercise.workout_type }})
-               {% if exercise.workout_type == 'lift' %}
-               - {{ exercise.weight }} lbs, {{ exercise.reps }} reps x {{ exercise.sets }} sets
-               {% elif exercise.workout_type == 'cardio' %}
-               - Duration: {{ exercise.duration }} minutes
-               {% endif %}
-            </li>
-            {% endfor %}
-            {% else %}
-            <li>No exercises found for this workout.</li>
-            {% endif %}
-         </ul>
-      </li>
-      {% endfor %}
-   </ul>
-   {% else %}
-   <p>This is where you can track your workouts, view progress, and more!</p>
-   {% endif %}
-   <script> 
-      // sort these by descending. each workout is grouped as a day
-      // then each day contains a list of exercises. store all of these parts
-      const workouts = {{ workouts | tojson }}.sort((a, b) => b.day - a.day);
-      
-      $(document).ready(function() {
-          // Create Workout Button Event
-          $("#createWorkout").click(function() {
-              fetch("{{ url_for('create_workout') }}", {
-                  method: "POST",
-                  headers: {
-                      "Content-Type": "application/json"
-                  }
-              }).then(response => response.json())
-              .then(data => {
-                  (data.status == 200) ? toastr.success(data.msg) : toastr.error(data.msg);
-              })
-          })
-      })
-      
-      function addExercise(workout_id, name, workout_type, weight=0, sets=0, reps=0, duration=0) {
-          const exercise_data = {
-              workout_id: workout_id,
-              name: name,
-              workout_type: workout_type,
-              weight: weight,
-              sets: sets,
-              reps: reps,
-              duration: duration
-          };
-      
-          // Send the POST request to the API
-          fetch("/api/create_exercise", {
-              method: "POST",
-              headers: {
-                  "Content-Type": "application/json"
-              },
-              body: JSON.stringify(exercise_data)
-          }).then(response => response.json())
-          .then(data => {
-              (data.status == 200) ? toastr.success(data.msg) : toastr.error(data.msg);
-          });
-      }
-      
-      function updateExercise(workout_id, exercise_id, name, workout_type, weight, sets, reps, duration) {
-          const exercise_data = {
-              workout_id: workout_id,
-              exercise_id: exercise_id,
-              exercise_name: name,
-              workout_type: workout_type,
-              weight: weight,
-              sets: sets,
-              reps: reps,
-              duration: duration
-          };
-      
-          fetch("/api/update_exercise", {
-              method: "POST",
-              headers: {
-                  "Content-Type": "application/json"
-              },
-              body: JSON.stringify(exercise_data)
-          }).then(response => response.json())
-          .then(data => {
-              (data.status == 200) ? toastr.success(data.msg) : toastr.error(data.msg);
-          });
-      }
-      
-      function deleteExercise(exercise_id) {
-          fetch("/api/delete_exercise", {
-              method: "POST",
-              headers: {
-                  "Content-Type": "application/json"
-              },
-              body: JSON.stringify({ exercise_id: exercise_id })
-          })
-          .then(response => response.json())
-          .then(data => {
-              if (data.status === 200) {
-                  toastr.success(data.msg);
-              } else {
-                  toastr.error(data.msg);
-              }
-          })
-      }
-      
-      function deleteWorkout(workout_id) {
-          fetch("/api/delete_workout", {
-              method: "POST",
-              headers: {
-                  "Content-Type": "application/json"
-              },
-              body: JSON.stringify({ workout_id: workout_id })
-          })
-          .then(response => response.json())
-          .then(data => {
-              (data.status == 200) ? toastr.success(data.msg) : toastr.error(data.msg);
-          });
-      }
-   </script>
+    <h2>Your Workout Dashboard</h2>
+    <button id="createWorkout" class="btn btn-primary mb-3">Create Workout</button>
+    {% if workouts %}
+    <ul id="workoutList" class="list-group">
+        {% for workout in workouts|sort(attribute="day", reverse=True) %}
+        <li class="list-group-item">
+            <strong>{{ workout.day }} - Workout ID: {{ workout.id }}</strong>
+            <button class="btn btn-success btn-sm addExerciseBtn" data-workout-id="{{ workout.id }}">Add Exercise</button>
+            <button class="btn btn-danger btn-sm deleteWorkoutBtn" data-workout-id="{{ workout.id }}">Delete Workout</button>
+            <ul class="list-group mt-2">
+                {% if workout.exercises %}
+                {% for exercise in workout.exercises %}
+                <li class="list-group-item d-flex justify-content-between align-items-center" 
+                    data-exercise-id="{{ exercise.id }}"
+                    data-workout-type="{{ exercise.workout_type }}"
+                    data-weight="{{ exercise.weight }}"
+                    data-sets="{{ exercise.sets }}"
+                    data-reps="{{ exercise.reps }}"
+                    data-duration="{{ exercise.duration }}">
+                    <span>
+                        <strong>{{ exercise.name }}</strong> (Type: {{ exercise.workout_type }})
+                        {% if exercise.workout_type == 'lift' %}
+                        - {{ exercise.weight }} lbs, {{ exercise.reps }} reps x {{ exercise.sets }} sets
+                        {% elif exercise.workout_type == 'cardio' %}
+                        - Duration: {{ exercise.duration }} minutes
+                        {% endif %}
+                    </span>
+                    <div>
+                        <button class="btn btn-warning btn-sm updateExerciseBtn">Update</button>
+                        <button class="btn btn-danger btn-sm deleteExerciseBtn">Delete</button>
+                    </div>
+                </li>
+                {% endfor %}
+                {% else %}
+                <li class="list-group-item">No exercises found for this workout.</li>
+                {% endif %}
+            </ul>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>This is where you can track your workouts, view progress, and more!</p>
+    {% endif %}
+    
+    <!-- Modal for Adding/Updating Exercise -->
+    <div class="modal fade" id="exerciseModal" tabindex="-1" aria-labelledby="exerciseModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exerciseModalLabel">Add Exercise</h5>
+                </div>
+                <div class="modal-body">
+                    <form id="exerciseForm">
+                        <input type="hidden" id="exerciseId" value="">
+                        <input type="hidden" id="workoutId" value=""> <!-- Hidden field for workout ID -->
+                        <div class="mb-3">
+                            <label for="exerciseName" class="form-label">Exercise Name</label>
+                            <input type="text" class="form-control" id="exerciseName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="workoutType" class="form-label">Workout Type</label>
+                            <select class="form-select" id="workoutType" required>
+                                <option value="">Select Type</option>
+                                <option value="lift">Lift</option>
+                                <option value="cardio">Cardio</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="weight" class="form-label">Weight (lbs)</label>
+                            <input type="number" class="form-control" id="weight" min="0">
+                        </div>
+                        <div class="mb-3">
+                            <label for="sets" class="form-label">Sets</label>
+                            <input type="number" class="form-control" id="sets" min="0">
+                        </div>
+                        <div class="mb-3">
+                            <label for="reps" class="form-label">Reps</label>
+                            <input type="number" class="form-control" id="reps" min="0">
+                        </div>
+                        <div class="mb-3">
+                            <label for="duration" class="form-label">Duration (min)</label>
+                            <input type="number" class="form-control" id="duration" min="0">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" id="saveExercise" class="btn btn-primary">Save Exercise</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // sort these by descending. each workout is grouped as a day
+        // then each day contains a list of exercises. store all of these parts
+        const workouts = {{ workouts | tojson }}.sort((a, b) => b.day - a.day);
+
+        $(document).ready(function() {
+            // Create Workout Button Event
+            $("#createWorkout").click(function() {
+                // Get the current date in the format YYYYMMDD
+                const currentDate = new Date().toISOString().split('T')[0].replace(/-/g, '');
+
+                // Function to format YYYYMMDD to "Month Day, Year"
+                function formatCurrentDate(dateStr) {
+                    const year = dateStr.substring(0, 4);
+                    const month = dateStr.substring(4, 6);
+                    const day = dateStr.substring(6, 8);
+                    const date = new Date(year, month - 1, day); // month is 0-indexed
+                    return date.toLocaleString('default', { month: 'long' }) + ' ' + day + ', ' + year;
+                }
+
+                // Format the current date for comparison
+                const formattedCurrentDate = formatCurrentDate(currentDate);
+
+                // Check if there's already a workout for the current date
+                const existingWorkout = Array.from($('#workoutList .list-group-item')).some(item => {
+                    return $(item).find('strong').text().includes(formattedCurrentDate);
+                });
+
+                if (existingWorkout) {
+                    toastr.error("You can only add one workout per day!"); // Display error message
+                    return; // Exit the function if there's already a workout
+                }
+
+                //Proceed with creating the workout
+                fetch("{{ url_for('create_workout') }}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                }).then(response => response.json())
+                .then(data => {
+                    (data.status == 200) ? toastr.success(data.msg) : toastr.error(data.msg);
+                    location.reload(); // Refresh the dashboard
+                });
+            });
+
+            // Event delegation for add exercise button
+            $('#workoutList').on('click', '.addExerciseBtn', function() {
+                const workoutId = $(this).data('workout-id');
+                $('#workoutId').val(workoutId); // Set the workout ID in the hidden field
+                $('#exerciseModalLabel').text('Add Exercise');
+                $('#exerciseForm')[0].reset(); // Reset form
+                $('#exerciseId').val(''); // Clear exercise ID
+                $('#exerciseModal').modal('show'); // Show the modal
+            });
+
+            $('#workoutList').on('click', '.updateExerciseBtn', function() {
+                const exerciseId = $(this).closest('.list-group-item').data('exercise-id');
+                const workoutId = $(this).closest('.list-group-item').data('workout-id');
+
+                // Fill the modal with current exercise data
+                const exerciseItem = $(this).closest('.list-group-item');
+                $('#exerciseId').val(exerciseId);
+                $('#workoutId').val(workoutId); // Set the workout ID
+                $('#exerciseName').val(exerciseItem.find('strong').text());
+                $('#workoutType').val(exerciseItem.data('workout_type'));
+                $('#weight').val(exerciseItem.data('weight'));
+                $('#sets').val(exerciseItem.data('sets'));
+                $('#reps').val(exerciseItem.data('reps'));
+                $('#duration').val(exerciseItem.data('duration'));
+                $('#exerciseModalLabel').text('Update Exercise');
+                $('#exerciseModal').modal('show'); // Show the modal
+            });
+
+            // Save Exercise Button Event
+            $('#saveExercise').click(function() {
+                const exerciseId = $('#exerciseId').val();
+                const name = $('#exerciseName').val();
+                const workoutType = $('#workoutType').val();
+                const weight = $('#weight').val();
+                const sets = $('#sets').val();
+                const reps = $('#reps').val();
+                const duration = $('#duration').val();
+                const workoutId = $('#workoutId').val(); // Get workout ID
+
+                if (exerciseId) {
+                    // If exerciseId is present, update the exercise
+                    updateExercise(workoutId, exerciseId, name, workoutType, weight, sets, reps, duration);
+                } else {
+                    // Otherwise, add a new exercise
+                    addExercise(workoutId, name, workoutType, weight, sets, reps, duration);
+                }
+
+                $('#exerciseModal').modal('hide'); // Hide the modal after action
+            });
+           
+            // Event delegation for delete button
+            $('#workoutList').on('click', '.deleteExerciseBtn', function() {
+                const exerciseId = $(this).closest('.list-group-item').data('exercise-id');
+                deleteExercise(exerciseId); // Call delete function
+            }); 
+            
+            // Event delegation for delete workout button
+            $('#workoutList').on('click', '.deleteWorkoutBtn', function() {
+                const workoutId = $(this).data('workout-id');
+                if (confirm("Are you sure you want to delete this workout? This will also delete all associated exercises.")) {
+                    fetch(`/delete_workout/${workoutId}`, {
+                        method: "DELETE",
+                        headers: {
+                            "Content-Type": "application/json"
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status == 200) {
+                            toastr.success(data.msg);
+                            location.reload(); // Refresh the dashboard to reflect changes
+                        } else {
+                            toastr.error(data.msg);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        toastr.error("An error occurred while trying to delete the workout.");
+                    });
+                }
+            }); 
+
+            // Add an event listener for the Close button
+            $('.btn-secondary[data-bs-dismiss="modal"]').on('click', function() {
+                // Hide the modal
+                $('#exerciseModal').modal('hide');
+
+                // Optionally reset the input fields if necessary
+                $('#exerciseForm')[0].reset(); // Reset the form fields
+            });
+
+            const formatWorkoutDays = () => {
+                $('.workout-day').each(function() {
+                    const workoutDay = $(this).text().split(' - ')[0].trim();
+                    
+                    // Ensure the length is exactly 8 characters for YYYYMMDD
+                    if (workoutDay.length === 8) {
+                        const year = workoutDay.substring(0, 4);
+                        const month = workoutDay.substring(4, 6);
+                        const day = workoutDay.substring(6, 8);
+                        
+                        // Format to YYYY/MM/DD
+                        const formattedDate = `${year}/${month}/${day}`;
+                        $(this).text(`${formattedDate} - Workout ID: ${$(this).text().split(' - ')[1]}`);
+                    }
+                });
+            };    
+
+            formatWorkoutDays(); // Call the function to format dates
+        });
+
+        function addExercise(workout_id, name, workout_type, weight=0, sets=0, reps=0, duration=0) {
+            const exercise_data = {
+                workout_id: workout_id,
+                name: name,
+                workout_type: workout_type,
+                weight: weight,
+                sets: sets,
+                reps: reps,
+                duration: duration
+            };
+
+            // Send the POST request to the API
+            fetch("/api/create_exercise", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(exercise_data)
+            }).then(response => response.json())
+            .then(data => {
+                (data.status == 200) ? toastr.success(data.msg) : toastr.error(data.msg);
+                location.reload(); // Refresh the dashboard to show updated data
+            });
+        }
+
+        function updateExercise(workout_id, exercise_id, name, workout_type, weight, sets, reps, duration) {
+            const exercise_data = {
+                workout_id: workout_id,
+                exercise_id: exercise_id,
+                exercise_name: name,
+                workout_type: workout_type,
+                weight: weight,
+                sets: sets,
+                reps: reps,
+                duration: duration
+            };
+
+            console.log("Updating exercise with data:", exercise_data); // Debug line
+
+            fetch("/api/update_exercise", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(exercise_data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Update response:", data); // Debug line
+                if (data.status == 200) {
+                    toastr.success(data.msg);
+
+                    // Update the UI after the successful update
+                    const exerciseItem = $('#workoutList').find(`[data-exercise-id="${exercise_id}"]`);
+                    exerciseItem.find('strong').text(name);
+                    exerciseItem.data('workout-type', workout_type);
+                    exerciseItem.data('weight', weight);
+                    exerciseItem.data('sets', sets);
+                    exerciseItem.data('reps', reps);
+                    exerciseItem.data('duration', duration);
+
+                    // Update the displayed text based on workout type
+                    if (workout_type === 'lift') {
+                        exerciseItem.html(`
+                            <span>
+                                <strong>${name}</strong> (Type: ${workout_type}) - ${weight} lbs, ${reps} reps x ${sets} sets
+                            </span>
+                            <div>
+                                <button class="btn btn-warning btn-sm updateExerciseBtn">Update</button>
+                                <button class="btn btn-danger btn-sm deleteExerciseBtn">Delete</button>
+                            </div>
+                        `);
+                    } else if (workout_type === 'cardio') {
+                        exerciseItem.html(`
+                            <span>
+                                <strong>${name}</strong> (Type: ${workout_type}) - Duration: ${duration} minutes
+                            </span>
+                            <div>
+                                <button class="btn btn-warning btn-sm updateExerciseBtn">Update</button>
+                                <button class="btn btn-danger btn-sm deleteExerciseBtn">Delete</button>
+                            </div>
+                        `);
+                    }
+                } else {
+                    toastr.error(data.msg);
+                }
+            });
+        }
+
+        function deleteExercise(exercise_id) {
+            fetch("/api/delete_exercise", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ exercise_id: exercise_id })
+            })
+            .then(response => response.json())
+            .then(data => {
+                (data.status == 200) ? toastr.success(data.msg) : toastr.error(data.msg);
+                location.reload(); // Refresh to show updated data
+            });
+        }
+
+        function deleteWorkout(workout_id) {
+            fetch("/api/delete_workout", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ workout_id: workout_id })
+            })
+            .then(response => response.json())
+            .then(data => {
+                (data.status == 200) ? toastr.success(data.msg) : toastr.error(data.msg);
+                location.reload(); // Refresh to show updated data
+            });
+        }
+    </script>
 </div>
 {% endblock %}

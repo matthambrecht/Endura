@@ -338,6 +338,11 @@ def delete_workout():
     profile = Profile.query.filter_by(user_id=current_user.id).first()
     if not profile or workout.profile_id != profile.id:
         return {"msg": "Unauthorized access to this workout", "status": 403}
+    
+    # Assuming exercises are related to the workout
+    exercises = Exercise.query.filter_by(workout_id=workout.id).all()
+    for exercise in exercises:
+        db.session.delete(exercise)  # Delete associated exercises
 
     db.session.delete(workout)
     db.session.commit()
@@ -345,7 +350,16 @@ def delete_workout():
         "msg": "Workout and associated exercises deleted successfully",
         "status": 200}
 
-
+def format_date(date_str):
+    """Format the date from MMDDYYYY to a more readable format."""
+    if len(date_str) != 8:
+        return date_str  # Return original if format is unexpected
+    try:
+        formatted_date = datetime.datetime.strptime(date_str, "%Y%m%d").strftime("%B %d, %Y")
+        return formatted_date
+    except ValueError:
+        return date_str  # Return original if parsing fails
+    
 def get_all_workouts():
     profile = Profile.query.filter_by(user_id=current_user.id).first()
 
@@ -358,7 +372,7 @@ def get_all_workouts():
 
     return [{
         "id": workout.id,
-        "day": workout.day,
+        "day": format_date(workout.day),
         "profile_id": workout.profile_id,
         "exercises": [
             {
@@ -429,7 +443,7 @@ def profile():
                 return redirect(url_for("profile"))
             gender = request.form["gender"]
             if gender not in ["M", "F"]:
-                flash("Gender must be M or F", 'error')
+                flash("Sex must be M or F", 'error')
                 return redirect(url_for("profile"))
 
             profile = get_profile()
