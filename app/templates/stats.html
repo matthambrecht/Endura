@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}Stats{% endblock %}
+{% block page_body %}
+<div class="col-md-6 offset-md-3">
+    <h2 class="text-center">Stats</h2>
+    <p>Number of Workouts: {{ num_workouts }}</p>
+    <p>Number of Exercises: {{ num_exercises }}</p>
+    <p>Total Weight Lifted: {{ total_weight }} lbs</p>
+    <p>Total Minutes of Cardio: {{ total_minutes }} minutes</p>
+</div>
+
+<style>
+    body {
+        background-color: #d9ead3; /* Background color */
+    }
+</style>
+{% endblock %}
+
