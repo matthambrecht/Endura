@@ -571,6 +571,31 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for("login"))
+
+@app.route("/stats")
+@login_required
+def stats():
+    workouts = get_all_workouts()
+    num_workouts = len(workouts)
+    num_exercises = 0
+    total_weight = 0
+    total_minutes = 0
+
+    for workout in workouts:
+        num_exercises += len(workout['exercises'])
+
+        for exercise in workout['exercises']:
+            if exercise['workout_type'] == 'cardio':
+                total_minutes += exercise['duration']
+            elif exercise['workout_type'] == 'lift':
+                total_weight += exercise['sets'] * exercise['reps'] * exercise['weight']
+
+    return render_template(
+        "stats.html",
+        num_workouts=num_workouts,
+        num_exercises=num_exercises,
+        total_weight=total_weight,
+        total_minutes=total_minutes)
 # End Account Management Methods
 
 
