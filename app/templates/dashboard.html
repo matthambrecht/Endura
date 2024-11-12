@@ -1,6 +1,8 @@
 {% extends 'base.html' %}
 {% block title %}Workout Dashboard{% endblock %}
 {% block page_body %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
 <div class="col-md-8 offset-md-2">
     <h2>Your Workout Dashboard</h2>
     <button id="createWorkout" class="btn btn-primary mb-3">Create Workout</button>
@@ -8,32 +10,38 @@
     <ul id="workoutList" class="list-group">
         {% for workout in workouts|sort(attribute="day", reverse=True) %}
         <li class="list-group-item">
-            <strong>{{ workout.day }} - Workout ID: {{ workout.id }}</strong>
-            <button class="btn btn-success btn-sm addExerciseBtn" data-workout-id="{{ workout.id }}">Add Exercise</button>
-            <button class="btn btn-danger btn-sm deleteWorkoutBtn" data-workout-id="{{ workout.id }}">Delete Workout</button>
+            <strong>{{ workout.day }}</strong>
+            <div class="mt-2">
+                <button class="btn btn-success btn-sm addExerciseBtn" data-workout-id="{{ workout.id }}">Add Exercise</button>
+                <button class="btn btn-danger btn-sm deleteWorkoutBtn" data-workout-id="{{ workout.id }}">Delete Workout</button>
+            </div>
             <ul class="list-group mt-2">
                 {% if workout.exercises %}
                 {% for exercise in workout.exercises %}
-                <li class="list-group-item d-flex justify-content-between align-items-center" 
-                    data-exercise-id="{{ exercise.id }}"
-                    data-workout-type="{{ exercise.workout_type }}"
-                    data-weight="{{ exercise.weight }}"
-                    data-sets="{{ exercise.sets }}"
-                    data-reps="{{ exercise.reps }}"
-                    data-duration="{{ exercise.duration }}">
-                    <span>
-                        <strong>{{ exercise.name }}</strong> (Type: {{ exercise.workout_type }})
-                        {% if exercise.workout_type == 'lift' %}
-                        - {{ exercise.weight }} lbs, {{ exercise.reps }} reps x {{ exercise.sets }} sets
-                        {% elif exercise.workout_type == 'cardio' %}
-                        - Duration: {{ exercise.duration }} minutes
-                        {% endif %}
-                    </span>
-                    <div>
-                        <button class="btn btn-warning btn-sm updateExerciseBtn">Update</button>
-                        <button class="btn btn-danger btn-sm deleteExerciseBtn">Delete</button>
-                    </div>
-                </li>
+                    <li class="list-group-item exercise-item d-flex justify-content-between align-items-center" 
+                        data-exercise-id="{{ exercise.id }}"
+                        data-workout-type="{{ exercise.workout_type }}">
+                        <div class="exercise-info">
+                            <div class="exercise-name">{{ exercise.name }}</div>
+                            <div class="exercise-details">
+                                <span class="exercise-type">({{ exercise.workout_type.capitalize() }})</span>
+                                {% if exercise.workout_type == 'lift' %}
+                                    <div class="exercise-stats">
+                                        <span class="weight"><i class="fas fa-dumbbell"></i> {{ exercise.weight }} lbs</span>
+                                        <span class="reps-sets"><i class="fas fa-sync"></i> {{ exercise.reps }} reps x {{ exercise.sets }} sets</span>
+                                    </div>
+                                {% elif exercise.workout_type == 'cardio' %}
+                                    <div class="exercise-stats">
+                                        <span class="duration"><i class="fas fa-stopwatch"></i> {{ exercise.duration }} minutes</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="exercise-actions">
+                            <button class="btn btn-warning btn-sm updateExerciseBtn">Update</button>
+                            <button class="btn btn-danger btn-sm deleteExerciseBtn">Delete</button>
+                        </div>
+                    </li>
                 {% endfor %}
                 {% else %}
                 <li class="list-group-item">No exercises found for this workout.</li>
@@ -201,25 +209,7 @@
             $('#workoutList').on('click', '.deleteWorkoutBtn', function() {
                 const workoutId = $(this).data('workout-id');
                 if (confirm("Are you sure you want to delete this workout? This will also delete all associated exercises.")) {
-                    fetch(`/delete_workout/${workoutId}`, {
-                        method: "DELETE",
-                        headers: {
-                            "Content-Type": "application/json"
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.status == 200) {
-                            toastr.success(data.msg);
-                            location.reload(); // Refresh the dashboard to reflect changes
-                        } else {
-                            toastr.error(data.msg);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        toastr.error("An error occurred while trying to delete the workout.");
-                    });
+                    deleteWorkout(workoutId); // Call delete function
                 }
             }); 
 
@@ -372,4 +362,172 @@
         }
     </script>
 </div>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #d9ead3;
+    }
+
+    h2 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 20px;
+    }
+
+    #workoutList {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .list-group-item {
+        border-radius: 10px;
+        background-color: rgba(243, 243, 243, 0.5);
+        padding: 20px;
+        margin-bottom: 15px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+    }
+
+    .list-group-item:hover {
+        transform: translateY(-3px);
+    }
+
+    .workout-day {
+        font-weight: bold;
+        color: #555;
+        font-size: 1.2em;
+    }
+
+    .exercise-name {
+        color: #333;
+        font-weight: bold;
+    }
+
+    .exercise-details {
+        font-size: 0.9em;
+        color: #666;
+    }
+
+    button {
+        border-radius: 5px;
+    }
+
+    #exerciseModal .modal-content {
+        border-radius: 8px;
+    }
+
+    #saveExercise {
+        background-color: #4CAF50;
+        color: white;
+    }
+
+    #saveExercise:hover {
+        background-color: #45a049;
+    }
+
+    .btn-primary {
+        background-color: #4CAF50;
+        border: none;
+    }
+
+    .btn-primary:hover {
+        background-color: #45a049;
+    }
+
+    .btn-success, .btn-danger, .btn-warning {
+        margin-left: 5px;
+    }
+
+    .btn-success {
+        background-color: #28a745;
+    }
+
+    .btn-danger {
+        background-color: #dc3545;
+    }
+
+    .btn-warning {
+        background-color: #ffc107;
+    }
+
+    #workoutList {
+        max-width: 800px;
+        margin: 0 auto;
+        max-height: 70vh; /* Adjust as needed */
+        overflow-y: auto;
+        padding-right: 15px; /* Add space for scroll */
+    }
+
+    /* Custom Scrollbar */
+    #workoutList::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    #workoutList::-webkit-scrollbar-track {
+        background: #f3f3f3;
+    }
+
+    #workoutList::-webkit-scrollbar-thumb {
+        background-color: #4CAF50;
+        border-radius: 10px;
+    }
+
+    .exercise-item {
+        background-color: #f9f9f9;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .exercise-info {
+        display: flex;
+        flex-direction: column;
+        max-width: 70%;
+    }
+
+    .exercise-name {
+        font-size: 1.1em;
+        font-weight: bold;
+        color: #333;
+    }
+
+    .exercise-details {
+        font-size: 0.9em;
+        color: #666;
+        margin-top: 5px;
+    }
+
+    .exercise-type {
+        font-style: italic;
+        color: #888;
+    }
+
+    .exercise-stats {
+        display: flex;
+        gap: 15px;
+        margin-top: 5px;
+    }
+
+    .exercise-stats span {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .exercise-stats i {
+        color: #4CAF50;
+        font-size: 1em;
+    }
+
+    .exercise-actions {
+        display: flex;
+        gap: 5px;
+    }
+
+    .addExerciseBtn, .deleteWorkoutBtn {
+        margin-right: 5px;
+    }
+</style>
 {% endblock %}
