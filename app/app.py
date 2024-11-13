@@ -15,6 +15,7 @@ from flask_login import (
 )
 from flask_bcrypt import Bcrypt
 from flask.logging import logging
+from collections import defaultdict
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///endura.db"
@@ -572,32 +573,47 @@ def logout():
     logout_user()
     return redirect(url_for("login"))
 
-@app.route("/stats")
+@app.route('/stats')
 @login_required
 def stats():
-    workouts = get_all_workouts()
+    # Fetch workouts for the logged-in user
+    profile = Profile.query.filter_by(user_id=current_user.id).first()
+    workouts = Workout.query.filter_by(profile_id=profile.id).all() if profile else []
+
+    # Calculate general stats
     num_workouts = len(workouts)
-    num_exercises = 0
-    total_weight = 0
-    total_minutes = 0
+    num_exercises = sum(len(w.exercises) for w in workouts) if workouts else 0
+    total_weight = sum(
+        ex.weight * ex.reps * ex.sets 
+        for w in workouts 
+        for ex in w.exercises if isinstance(ex, Lift)
+    ) if workouts else 0
+    total_minutes = sum(
+        ex.duration 
+        for w in workouts 
+        for ex in w.exercises if isinstance(ex, Cardio)
+    ) if workouts else 0
 
-    for workout in workouts:
-        num_exercises += len(workout['exercises'])
+    # Calculate personal bests
+    heaviest_lift = max(
+        (ex.weight for w in workouts for ex in w.exercises if isinstance(ex, Lift)),
+        default=0
+    )
+    longest_cardio = max(
+        (ex.duration for w in workouts for ex in w.exercises if isinstance(ex, Cardio)),
+        default=0
+    )
 
-        for exercise in workout['exercises']:
-            if exercise['workout_type'] == 'cardio':
-                total_minutes += exercise['duration']
-            elif exercise['workout_type'] == 'lift':
-                total_weight += exercise['sets'] * exercise['reps'] * exercise['weight']
-
+    # Pass all required data to the template
     return render_template(
-        "stats.html",
+        'stats.html',
         num_workouts=num_workouts,
         num_exercises=num_exercises,
         total_weight=total_weight,
-        total_minutes=total_minutes)
-# End Account Management Methods
-
+        total_minutes=total_minutes,
+        heaviest_lift=heaviest_lift,
+        longest_cardio=longest_cardio
+    )
 
 if __name__ == "__main__":
     with app.app_context():

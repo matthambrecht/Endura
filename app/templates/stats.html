@@ -1,19 +1,198 @@
 {% extends 'base.html' %}
 {% block title %}Stats{% endblock %}
 {% block page_body %}
-<div class="col-md-6 offset-md-3">
-    <h2 class="text-center">Stats</h2>
-    <p>Number of Workouts: {{ num_workouts }}</p>
-    <p>Number of Exercises: {{ num_exercises }}</p>
-    <p>Total Weight Lifted: {{ total_weight }} lbs</p>
-    <p>Total Minutes of Cardio: {{ total_minutes }} minutes</p>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+<div class="container mt-5">
+    <!-- Main Stats Section -->
+    <h2 class="text-center mb-4">Your Workout Stats</h2>
+    <div class="row justify-content-center">
+        <!-- Number of Workouts Card -->
+        <div class="col-md-5 col-lg-3 mb-4">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <i class="fas fa-dumbbell fa-2x mb-3" style="color: #4CAF50;"></i>
+                    <h5 class="card-title">Workouts</h5>
+                    <p class="card-text display-4">{{ num_workouts }}</p>
+                </div>
+            </div>
+        </div>
+        <!-- Number of Exercises Card -->
+        <div class="col-md-5 col-lg-3 mb-4">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <i class="fas fa-list fa-2x mb-3" style="color: #FF9800;"></i>
+                    <h5 class="card-title">Exercises</h5>
+                    <p class="card-text display-4">{{ num_exercises }}</p>
+                </div>
+            </div>
+        </div>
+        <!-- Total Weight Lifted Card -->
+        <div class="col-md-5 col-lg-3 mb-4">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <i class="fas fa-weight fa-2x mb-3" style="color: #2196F3;"></i>
+                    <h5 class="card-title">Weight Lifted</h5>
+                    <p class="card-text display-4">{{ total_weight }} lbs</p>
+                </div>
+            </div>
+        </div>
+        <!-- Total Minutes of Cardio Card -->
+        <div class="col-md-5 col-lg-3 mb-4">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <i class="fas fa-running fa-2x mb-3" style="color: #E91E63;"></i>
+                    <h5 class="card-title">Cardio Minutes</h5>
+                    <p class="card-text display-4">{{ total_minutes }} mins</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Over Time Section -->
+    <h3 class="text-center mb-4">Progress Over Time</h3>
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <canvas id="workoutChart" height="100"></canvas>
+        </div>
+    </div>
+
+    <!-- Personal Bests Section -->
+    <h3 class="text-center mt-5 mb-4">Personal Bests</h3>
+    <div class="row justify-content-center">
+        <div class="col-md-4">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <i class="fas fa-trophy fa-2x mb-3" style="color: #FFD700;"></i>
+                    <h5 class="card-title">Heaviest Lift</h5>
+                    <p class="card-text display-5">{{ heaviest_lift }} lbs</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <i class="fas fa-stopwatch fa-2x mb-3" style="color: #FF6347;"></i>
+                    <h5 class="card-title">Longest Cardio</h5>
+                    <p class="card-text display-5">{{ longest_cardio }} mins</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Goal Tracker Section -->
+    <h3 class="text-center mt-5 mb-4">Your Goals</h3>
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="progress mb-4">
+                <div class="progress-bar bg-success" role="progressbar" style="width: 70%;" aria-valuenow="70" aria-valuemin="0" aria-valuemax="100">0% Workouts Goal</div>
+            </div>
+            <div class="progress">
+                <div class="progress-bar bg-info" role="progressbar" style="width: 50%;" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100">0% Weight Lifted Goal</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Achievements Section -->
+    <h3 class="text-center mt-5 mb-4">Achievements</h3>
+    <div class="row justify-content-center">
+        <div class="col-md-2">
+            <div class="badge badge-success p-3">
+                <i class="fas fa-medal fa-2x"></i>
+                <p class="mt-2">First Workout</p>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="badge badge-primary p-3">
+                <i class="fas fa-dumbbell fa-2x"></i>
+                <p class="mt-2">50 Workouts</p>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="badge badge-warning p-3">
+                <i class="fas fa-trophy fa-2x"></i>
+                <p class="mt-2">100 lbs Lifted</p>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- Chart.js Script -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Example Chart for Workouts Over Time
+    const ctx = document.getElementById('workoutChart').getContext('2d');
+    const workoutChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"], // Example months
+            datasets: [{
+                label: 'Workouts',
+                data: [5, 8, 4, 6, 9, 7], // Example data
+                borderColor: '#4CAF50',
+                backgroundColor: 'rgba(76, 175, 80, 0.2)',
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+</script>
 
 <style>
     body {
         font-family: Arial, sans-serif;
         background-color: #d9ead3; /* Background color */
     }
+
+    .card {
+        border-radius: 15px;
+        padding: 20px;
+        background-color: #f9f9f9;
+    }
+
+    .card-title {
+        font-weight: bold;
+        color: #555;
+    }
+
+    .card-text {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #333;
+    }
+
+    .badge {
+        background-color: #fff;
+        color: #333;
+        text-align: center;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    h2, h3 {
+        font-family: 'Arial', sans-serif;
+        font-weight: bold;
+        color: #4CAF50;
+        margin-bottom: 20px;
+    }
+
+    .progress-bar {
+        font-size: 0.9rem;
+        text-align: center;
+        color: white;
+    }
+
+    .container {
+        background-color: #fff;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        margin-top: 30px;
+    }
 </style>
 {% endblock %}
-

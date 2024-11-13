@@ -4,18 +4,20 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
 <div class="col-md-8 offset-md-2">
-    <h2>Your Workout Dashboard</h2>
-    <button id="createWorkout" class="btn btn-primary mb-3">Create Workout</button>
+    <h2 class="text-center mb-4">Your Workout Dashboard</h2>
+    <button id="createWorkout" class="btn btn-primary mb-4">Create Workout</button>
     {% if workouts %}
     <ul id="workoutList" class="list-group">
         {% for workout in workouts|sort(attribute="day", reverse=True) %}
-        <li class="list-group-item">
-            <strong>{{ workout.day }}</strong>
-            <div class="mt-2">
-                <button class="btn btn-success btn-sm addExerciseBtn" data-workout-id="{{ workout.id }}">Add Exercise</button>
-                <button class="btn btn-danger btn-sm deleteWorkoutBtn" data-workout-id="{{ workout.id }}">Delete Workout</button>
+        <li class="list-group-item workout-card">
+            <div class="workout-header">
+                <strong class="workout-date">{{ workout.day }}</strong>
+                <div class="workout-actions">
+                    <button class="btn btn-success btn-sm addExerciseBtn" data-workout-id="{{ workout.id }}">Add Exercise</button>
+                    <button class="btn btn-danger btn-sm deleteWorkoutBtn" data-workout-id="{{ workout.id }}">Delete Workout</button>
+                </div>
             </div>
-            <ul class="list-group mt-2">
+            <ul class="list-group mt-3">
                 {% if workout.exercises %}
                 {% for exercise in workout.exercises %}
                     <li class="list-group-item exercise-item d-flex justify-content-between align-items-center" 
@@ -34,7 +36,7 @@
                                     <div class="exercise-stats">
                                         <span class="duration"><i class="fas fa-stopwatch"></i> {{ exercise.duration }} minutes</span>
                                     </div>
-                                {% endif %}
+                                {% endif %} 
                             </div>
                         </div>
                         <div class="exercise-actions">
@@ -44,16 +46,16 @@
                     </li>
                 {% endfor %}
                 {% else %}
-                <li class="list-group-item">No exercises found for this workout.</li>
+                <li class="list-group-item text-muted">No exercises found for this workout.</li>
                 {% endif %}
             </ul>
         </li>
         {% endfor %}
     </ul>
     {% else %}
-    <p>This is where you can track your workouts, view progress, and more!</p>
+    <p class="text-center text-muted">This is where you can track your workouts, view progress, and more!</p>
     {% endif %}
-    
+</div>   
     <!-- Modal for Adding/Updating Exercise -->
     <div class="modal fade" id="exerciseModal" tabindex="-1" aria-labelledby="exerciseModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -366,7 +368,7 @@
 <style>
     body {
         font-family: Arial, sans-serif;
-        background-color: #d9ead3;
+        background-color: #d9ead3; /* Background color */
     }
 
     h2 {
@@ -381,16 +383,17 @@
     }
 
     .list-group-item {
-        border-radius: 10px;
-        background-color: rgba(243, 243, 243, 0.5);
-        padding: 20px;
-        margin-bottom: 15px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        transition: transform 0.3s ease;
+        border-radius: 15px;
+        background-color: #fff;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
     .list-group-item:hover {
-        transform: translateY(-3px);
+        transform: translateY(-2px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
     }
 
     .workout-day {
@@ -429,6 +432,7 @@
     .btn-primary {
         background-color: #4CAF50;
         border: none;
+        margin-top: 30px;
     }
 
     .btn-primary:hover {
@@ -459,31 +463,17 @@
         padding-right: 15px; /* Add space for scroll */
     }
 
-    /* Custom Scrollbar */
-    #workoutList::-webkit-scrollbar {
-        width: 8px;
-    }
-
-    #workoutList::-webkit-scrollbar-track {
-        background: #f3f3f3;
-    }
-
-    #workoutList::-webkit-scrollbar-thumb {
-        background-color: #4CAF50;
-        border-radius: 10px;
-    }
-
     .exercise-item {
         background-color: #f9f9f9;
-        border-radius: 8px;
-        padding: 15px;
+        border-radius: 12px;
+        padding: 20px;
         margin-bottom: 10px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        display: flex;
+        justify-content: space-between;
     }
 
     .exercise-info {
-        display: flex;
-        flex-direction: column;
         max-width: 70%;
     }
 
@@ -528,6 +518,8 @@
 
     .addExerciseBtn, .deleteWorkoutBtn {
         margin-right: 5px;
+        margin-top: 4px;
+        margin-left: 0px;
     }
 </style>
 {% endblock %}

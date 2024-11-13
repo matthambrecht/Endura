@@ -16,10 +16,15 @@
     <style>
         body {
             background-color: #d9ead3; /* Desired background color */
+            font-family: Arial, sans-serif;
         }
         
         /*----------------------- Top navbar -----------------------*/
         .navbar {
+            position: fixed;
+            top: 0;
+            z-index: 1000;
+            width: 100%;
             background-color: #dddcdc; /* Desired navbar color */
             height: 90px; /* Set desired height */
             align-items: center; /* Center the items vertically */
@@ -105,6 +110,7 @@
 
         /*----------------------- Main Content -----------------------*/
         .main-content {
+            margin-top: 100px;
             margin-left: 220px; /* Adjust margin for the sidebar */
             padding: 20px; /* Padding for the main content */
         }
