@@ -162,21 +162,29 @@
             });
 
             $('#workoutList').on('click', '.updateExerciseBtn', function() {
-                const exerciseId = $(this).closest('.list-group-item').data('exercise-id');
-                const workoutId = $(this).closest('.list-group-item').data('workout-id');
+                const exerciseItem = $(this).closest('.exercise-item');
+                const exerciseId = exerciseItem.data('exercise-id');
+                const workoutId = $(this).closest('.workout-card').data('workout-id');
+                const name = exerciseItem.find('.exercise-name').text();
+                const workoutType = exerciseItem.data('workout-type');
+                const weight = exerciseItem.find('.weight').text().match(/(\d+(\.\d+)?)/) ? exerciseItem.find('.weight').text().match(/(\d+(\.\d+)?)/)[0] : '';
+                const sets = exerciseItem.find('.reps-sets').text().match(/(\d+) sets/) ? exerciseItem.find('.reps-sets').text().match(/(\d+) sets/)[1] : '';
+                const reps = exerciseItem.find('.reps-sets').text().match(/(\d+) reps/) ? exerciseItem.find('.reps-sets').text().match(/(\d+) reps/)[1] : '';
+                const duration = exerciseItem.find('.duration').text().match(/(\d+)/) ? exerciseItem.find('.duration').text().match(/(\d+)/)[0] : '';
 
-                // Fill the modal with current exercise data
-                const exerciseItem = $(this).closest('.list-group-item');
+                // Set the values in the modal fields
                 $('#exerciseId').val(exerciseId);
-                $('#workoutId').val(workoutId); // Set the workout ID
-                $('#exerciseName').val(exerciseItem.find('strong').text());
-                $('#workoutType').val(exerciseItem.data('workout_type'));
-                $('#weight').val(exerciseItem.data('weight'));
-                $('#sets').val(exerciseItem.data('sets'));
-                $('#reps').val(exerciseItem.data('reps'));
-                $('#duration').val(exerciseItem.data('duration'));
+                $('#workoutId').val(workoutId);
+                $('#exerciseName').val(name);
+                $('#workoutType').val(workoutType);
+                $('#weight').val(workoutType === 'lift' ? weight : '');
+                $('#sets').val(workoutType === 'lift' ? sets : '');
+                $('#reps').val(workoutType === 'lift' ? reps : '');
+                $('#duration').val(workoutType === 'cardio' ? duration : '');
+
+                // Change modal title and show the modal
                 $('#exerciseModalLabel').text('Update Exercise');
-                $('#exerciseModal').modal('show'); // Show the modal
+                $('#exerciseModal').modal('show');
             });
 
             // Save Exercise Button Event
@@ -281,8 +289,6 @@
                 duration: duration
             };
 
-            console.log("Updating exercise with data:", exercise_data); // Debug line
-
             fetch("/api/update_exercise", {
                 method: "POST",
                 headers: {
@@ -292,13 +298,11 @@
             })
             .then(response => response.json())
             .then(data => {
-                console.log("Update response:", data); // Debug line
                 if (data.status == 200) {
                     toastr.success(data.msg);
 
-                    // Update the UI after the successful update
+                    // Find the exercise item in the DOM
                     const exerciseItem = $('#workoutList').find(`[data-exercise-id="${exercise_id}"]`);
-                    exerciseItem.find('strong').text(name);
                     exerciseItem.data('workout-type', workout_type);
                     exerciseItem.data('weight', weight);
                     exerciseItem.data('sets', sets);
@@ -306,27 +310,33 @@
                     exerciseItem.data('duration', duration);
 
                     // Update the displayed text based on workout type
+                    let exerciseHTML = `
+                        <div class="exercise-info">
+                            <div class="exercise-name">${name}</div>
+                            <div class="exercise-details">
+                                <span class="exercise-type">(${workout_type.charAt(0).toUpperCase() + workout_type.slice(1)})</span>
+                                <div class="exercise-stats">`;
+
                     if (workout_type === 'lift') {
-                        exerciseItem.html(`
-                            <span>
-                                <strong>${name}</strong> (Type: ${workout_type}) - ${weight} lbs, ${reps} reps x ${sets} sets
-                            </span>
-                            <div>
-                                <button class="btn btn-warning btn-sm updateExerciseBtn">Update</button>
-                                <button class="btn btn-danger btn-sm deleteExerciseBtn">Delete</button>
-                            </div>
-                        `);
+                        exerciseHTML += `
+                                    <span class="weight"><i class="fas fa-dumbbell"></i> ${weight} lbs</span>
+                                    <span class="reps-sets"><i class="fas fa-sync"></i> ${reps} reps x ${sets} sets</span>`;
                     } else if (workout_type === 'cardio') {
-                        exerciseItem.html(`
-                            <span>
-                                <strong>${name}</strong> (Type: ${workout_type}) - Duration: ${duration} minutes
-                            </span>
-                            <div>
-                                <button class="btn btn-warning btn-sm updateExerciseBtn">Update</button>
-                                <button class="btn btn-danger btn-sm deleteExerciseBtn">Delete</button>
-                            </div>
-                        `);
+                        exerciseHTML += `
+                                    <span class="duration"><i class="fas fa-stopwatch"></i> ${duration} minutes</span>`;
                     }
+
+                    exerciseHTML += `
+                                </div>
+                            </div>
+                        </div>
+                        <div class="exercise-actions">
+                            <button class="btn btn-warning btn-sm updateExerciseBtn">Update</button>
+                            <button class="btn btn-danger btn-sm deleteExerciseBtn">Delete</button>
+                        </div>`;
+
+                    // Replace the inner HTML of the exercise item with the updated format
+                    exerciseItem.html(exerciseHTML);
                 } else {
                     toastr.error(data.msg);
                 }
@@ -568,6 +578,11 @@
         margin-right: 5px;
         margin-top: 4px;
         margin-left: 0px;
+    }
+
+    .modal-footer .btn-secondary {
+        margin-right: auto;
+        margin-top: auto; /* Push the "Close" button to the left */
     }
 </style>
 {% endblock %}
