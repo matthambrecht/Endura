@@ -362,6 +362,54 @@
                 location.reload(); // Refresh to show updated data
             });
         }
+
+        function createGoal(workout_id, goal_str) {
+            fetch("/api/create_goal", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ 
+                    workout_id: workout_id,
+                    goal: goal_str })
+            })
+            .then(response => response.json())
+            .then(data => {
+                (data.status == 200) ? toastr.success(data.msg) : toastr.error(data.msg);
+            });
+        }
+
+        function deleteGoal(goal_id) {
+            fetch("/api/delete_goal", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ 
+                    goal_id: goal_id})
+            })
+            .then(response => response.json())
+            .then(data => {
+                (data.status == 200) ? toastr.success(data.msg) : toastr.error(data.msg);
+            });
+        }
+
+        function updateGoal(goal_id, selected, goal_str) {
+            fetch("/api/update_goal", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ 
+                    goal_id: goal_id,
+                    selected: selected,
+                    goal_str: goal_str})
+            })
+            .then(response => response.json())
+            .then(data => {
+                (data.status == 200) ? toastr.success(data.msg) : toastr.error(data.msg);
+            });
+        }
     </script>
 </div>
 

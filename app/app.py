@@ -105,9 +105,34 @@ class Workout(db.Model):
         backref='workout',
         lazy=True)
 
+    goals = db.relationship(
+        'Goal',
+        backref='workout',
+        lazy=True
+    )
+
     def __repr__(self):
         return f"<Workout {self.name}>"
 
+class Goal(db.Model):
+    __tablename__ = 'goals'
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True)
+    selected = db.Column(db.Integer,
+        nullable=False,
+        default=False)
+    sentence = db.Column(
+        db.String(100),
+        nullable=False)
+    workout_id = db.Column(
+        db.Integer,
+        db.ForeignKey('workouts.id'),
+        nullable=False)
+
+    def __repr__(self):
+        return f"<Goal {self.selected} {self.sentence}>"
 
 class Exercise(db.Model):
     __tablename__ = 'exercises'
@@ -180,6 +205,88 @@ class Cardio(Exercise):
 
 
 # Helper Functions
+@app.route("/api/create_goal", methods=["POST"])
+@login_required
+def create_goal():  # Action for the new goal button
+    data = request.json
+
+    if not (goal := data.get('goal')):
+        return {"msg": "Goal message must exist", "status": 500}
+
+    profile = Profile.query.filter_by(user_id=current_user.id).first()
+    if not profile:
+        return {"msg": "User profile not found", "status": 404}
+
+    workout = Workout.query.filter_by(
+        id=data.get('workout_id'), profile_id=profile.id).first()
+    if not workout:
+        return {
+            "msg": "Workout not found or unauthorized access",
+            "status": 404}
+    
+    goal = Goal(workout_id=workout.id,
+                selected=0,
+                sentence=goal)
+
+    db.session.add(goal)
+    db.session.commit()
+
+    return {'msg': "Goal added successfully", "status": 200}
+
+
+@app.route("/api/delete_goal", methods=["POST"])
+@login_required
+def delete_goal():
+    data = request.json
+    goal_id = data.get("goal_id")
+
+    goal = Goal.query.get(goal_id)
+    if not goal:
+        return {"msg": "Goal not found", "status": 404}
+
+    profile = Profile.query.filter_by(user_id=current_user.id).first()
+    if not profile or goal.workout.profile_id != profile.id:
+        return {"msg": "Unauthorized access to this goal", "status": 403}
+
+    db.session.delete(goal)
+    db.session.commit()
+    return {"msg": "Goal deleted successfully", "status": 200}
+
+
+@app.route("/api/update_goal", methods=["POST"])
+@login_required
+def update_goal():
+    data = request.json
+    goal_id = data.get("goal_id")
+    goal_str = data.get("goal_str")
+    selected = int(data.get("selected"))
+    goal = Goal.query.get(goal_id)
+
+    if not goal:
+        return {"msg": "Goal not found", "status": 404}
+
+    if not goal_str:
+        return {"msg": "An goal string must be provided", "status": 500}
+
+    if not selected in [0, 1]:
+        return {"msg": "A valid selected state must be provided", "status": 500}
+
+    goal.sentence = goal_str
+    goal.selected = selected
+    profile = Profile.query.filter_by(user_id=current_user.id).first()
+
+    if not profile or goal.workout.profile_id != profile.id:
+        return {"msg": "Unauthorized access to this goal", "status": 403}
+
+    db.session.add(goal)
+    db.session.commit()
+
+    return {
+        "msg": "Goal updated successfully",
+        "status": 200}
+
+
+
 @app.route("/api/create_workout", methods=["POST"])
 @login_required
 def create_workout():  # Action for the create workout button
@@ -386,6 +493,14 @@ def get_all_workouts():
                 "duration": getattr(exercise, 'duration', None),
             }
             for exercise in workout.exercises
+        ],
+        "goals": [
+            {
+                "id": goal.id,
+                "selected": goal.selected,
+                "goal_str": goal.sentence
+            }
+            for goal in workout.goals
         ]
     } for workout in workouts]
 
