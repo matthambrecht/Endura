@@ -3,107 +3,170 @@
 {% block page_body %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
-<div class="col-md-8 offset-md-2">
-    <h2 class="text-center mb-4">Your Workout Dashboard</h2>
-    <button id="createWorkout" class="btn btn-primary mb-4">Create Workout</button>
-    {% if workouts %}
-    <ul id="workoutList" class="list-group">
-        {% for workout in workouts|sort(attribute="day", reverse=True) %}
-        <li class="list-group-item workout-card">
-            <div class="workout-header">
-                <strong class="workout-date">{{ workout.day }}</strong>
-                <div class="workout-actions">
-                    <button class="btn btn-success btn-sm addExerciseBtn" data-workout-id="{{ workout.id }}">Add Exercise</button>
-                    <button class="btn btn-danger btn-sm deleteWorkoutBtn" data-workout-id="{{ workout.id }}">Delete Workout</button>
+<script
+  src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <h2 class="text-center mb-4" style="margin-top: 90px;">Your Workout Dashboard</h2>
+            <button id="createWorkout" class="btn btn-primary mb-4">Create Workout</button>
+            {% if workouts %}
+            <ul id="workoutList" class="list-group">
+                {% for workout in workouts|sort(attribute="day", reverse=True) %}
+                <li class="list-group-item workout-card">
+                    <div class="workout-header">
+                        <strong class="workout-date">{{ workout.day }}</strong>
+                        <div class="workout-actions">
+                            <button class="btn btn-success btn-sm addExerciseBtn" data-workout-id="{{ workout.id }}">Add Exercise</button>
+                            <button class="btn btn-danger btn-sm deleteWorkoutBtn" data-workout-id="{{ workout.id }}">Delete Workout</button>
+                        </div>
+                    </div>
+                    <ul class="list-group mt-3">
+                        {% if workout.exercises %}
+                        {% for exercise in workout.exercises %}
+                            <li class="list-group-item exercise-item d-flex justify-content-between align-items-center" 
+                                data-exercise-id="{{ exercise.id }}"
+                                data-workout-type="{{ exercise.workout_type }}">
+                                <div class="exercise-info">
+                                    <div class="exercise-name">{{ exercise.name }}</div>
+                                    <div class="exercise-details">
+                                        <span class="exercise-type">({{ exercise.workout_type.capitalize() }})</span>
+                                        {% if exercise.workout_type == 'lift' %}
+                                            <div class="exercise-stats">
+                                                <span class="weight"><i class="fas fa-dumbbell"></i> {{ exercise.weight }} lbs</span>
+                                                <span class="reps-sets"><i class="fas fa-sync"></i> {{ exercise.reps }} reps x {{ exercise.sets }} sets</span>
+                                            </div>
+                                        {% elif exercise.workout_type == 'cardio' %}
+                                            <div class="exercise-stats">
+                                                <span class="duration"><i class="fas fa-stopwatch"></i> {{ exercise.duration }} minutes</span>
+                                            </div>
+                                        {% endif %} 
+                                    </div>
+                                </div>
+                                <div class="exercise-actions">
+                                    <button class="btn btn-warning btn-sm updateExerciseBtn">Update</button>
+                                    <button class="btn btn-danger btn-sm deleteExerciseBtn">Delete</button>
+                                </div>
+                            </li>
+                        {% endfor %}
+                        {% else %}
+                        <li class="list-group-item text-muted">No exercises found for this workout.</li>
+                        {% endif %}
+                    </ul>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="text-center text-muted">This is where you can track your workouts, view progress, and more!</p>
+            {% endif %}
+        </div>  
+ 
+        <!-- Goal Management Section -->
+        <div class="col-md-4">
+            <h2 class="text-center mb-4" style="margin-top: 90px;">Your Goals</h2>
+            {% for workout in workouts %}
+            <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <strong>{{ workout.day }}</strong>
+                    <button class="btn btn-sm btn-success addGoalBtn" data-workout-id="{{ workout.id }}">Add Goal</button>
+                </div>
+                <div class="card-body">
+                    {% if workout.goals %}
+                    <ul class="list-group">
+                        {% for goal in workout.goals %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>{{ goal.goal_str }}</span>
+                            <div>
+                                <button class="btn btn-warning btn-sm updateGoalBtn" data-goal-id="{{ goal.id }}">Edit</button>
+                                <button class="btn btn-danger btn-sm deleteGoalBtn" data-goal-id="{{ goal.id }}">Delete</button>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="text-muted">No goals for this workout.</p>
+                    {% endif %}
                 </div>
             </div>
-            <ul class="list-group mt-3">
-                {% if workout.exercises %}
-                {% for exercise in workout.exercises %}
-                    <li class="list-group-item exercise-item d-flex justify-content-between align-items-center" 
-                        data-exercise-id="{{ exercise.id }}"
-                        data-workout-type="{{ exercise.workout_type }}">
-                        <div class="exercise-info">
-                            <div class="exercise-name">{{ exercise.name }}</div>
-                            <div class="exercise-details">
-                                <span class="exercise-type">({{ exercise.workout_type.capitalize() }})</span>
-                                {% if exercise.workout_type == 'lift' %}
-                                    <div class="exercise-stats">
-                                        <span class="weight"><i class="fas fa-dumbbell"></i> {{ exercise.weight }} lbs</span>
-                                        <span class="reps-sets"><i class="fas fa-sync"></i> {{ exercise.reps }} reps x {{ exercise.sets }} sets</span>
-                                    </div>
-                                {% elif exercise.workout_type == 'cardio' %}
-                                    <div class="exercise-stats">
-                                        <span class="duration"><i class="fas fa-stopwatch"></i> {{ exercise.duration }} minutes</span>
-                                    </div>
-                                {% endif %} 
+            {% endfor %}
+        </div>
+
+        <!-- Modal for Adding/Updating Goal -->
+        <div class="modal fade" id="goalModal" tabindex="-1" aria-labelledby="goalModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="goalModalLabel">Add Goal</h5>
+                    </div>
+                    <div class="modal-body">
+                        <form id="goalForm">
+                            <input type="hidden" id="goalId" value="">
+                            <input type="hidden" id="workoutId" value="">
+                            <div class="mb-3">
+                                <label for="goalText" class="form-label">Goal</label>
+                                <input type="text" class="form-control" id="goalText" required>
                             </div>
-                        </div>
-                        <div class="exercise-actions">
-                            <button class="btn btn-warning btn-sm updateExerciseBtn">Update</button>
-                            <button class="btn btn-danger btn-sm deleteExerciseBtn">Delete</button>
-                        </div>
-                    </li>
-                {% endfor %}
-                {% else %}
-                <li class="list-group-item text-muted">No exercises found for this workout.</li>
-                {% endif %}
-            </ul>
-        </li>
-        {% endfor %}
-    </ul>
-    {% else %}
-    <p class="text-center text-muted">This is where you can track your workouts, view progress, and more!</p>
-    {% endif %}
-</div>   
-    <!-- Modal for Adding/Updating Exercise -->
-    <div class="modal fade" id="exerciseModal" tabindex="-1" aria-labelledby="exerciseModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exerciseModalLabel">Add Exercise</h5>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" id="saveGoal" class="btn btn-primary">Save Goal</button>
+                    </div>
                 </div>
-                <div class="modal-body">
-                    <form id="exerciseForm">
-                        <input type="hidden" id="exerciseId" value="">
-                        <input type="hidden" id="workoutId" value=""> <!-- Hidden field for workout ID -->
-                        <div class="mb-3">
-                            <label for="exerciseName" class="form-label">Exercise Name</label>
-                            <input type="text" class="form-control" id="exerciseName" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="workoutType" class="form-label">Workout Type</label>
-                            <select class="form-select" id="workoutType" required>
-                                <option value="">Select Type</option>
-                                <option value="lift">Lift</option>
-                                <option value="cardio">Cardio</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="weight" class="form-label">Weight (lbs)</label>
-                            <input type="number" class="form-control" id="weight" min="0">
-                        </div>
-                        <div class="mb-3">
-                            <label for="sets" class="form-label">Sets</label>
-                            <input type="number" class="form-control" id="sets" min="0">
-                        </div>
-                        <div class="mb-3">
-                            <label for="reps" class="form-label">Reps</label>
-                            <input type="number" class="form-control" id="reps" min="0">
-                        </div>
-                        <div class="mb-3">
-                            <label for="duration" class="form-label">Duration (min)</label>
-                            <input type="number" class="form-control" id="duration" min="0">
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" id="saveExercise" class="btn btn-primary">Save Exercise</button>
+            </div>
+        </div>
+
+        <!-- Modal for Adding/Updating Exercise -->
+        <div class="modal fade" id="exerciseModal" tabindex="-1" aria-labelledby="exerciseModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exerciseModalLabel">Add Exercise</h5>
+                    </div>
+                    <div class="modal-body">
+                        <form id="exerciseForm">
+                            <input type="hidden" id="exerciseId" value="">
+                            <input type="hidden" id="workoutId" value=""> <!-- Hidden field for workout ID -->
+                            <div class="mb-3">
+                                <label for="exerciseName" class="form-label">Exercise Name</label>
+                                <input type="text" class="form-control" id="exerciseName" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="workoutType" class="form-label">Workout Type</label>
+                                <select class="form-select" id="workoutType" required>
+                                    <option value="">Select Type</option>
+                                    <option value="lift">Lift</option>
+                                    <option value="cardio">Cardio</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="weight" class="form-label">Weight (lbs)</label>
+                                <input type="number" class="form-control" id="weight" min="0">
+                            </div>
+                            <div class="mb-3">
+                                <label for="sets" class="form-label">Sets</label>
+                                <input type="number" class="form-control" id="sets" min="0">
+                            </div>
+                            <div class="mb-3">
+                                <label for="reps" class="form-label">Reps</label>
+                                <input type="number" class="form-control" id="reps" min="0">
+                            </div>
+                            <div class="mb-3">
+                                <label for="duration" class="form-label">Duration (min)</label>
+                                <input type="number" class="form-control" id="duration" min="0">
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" id="saveExercise" class="btn btn-primary">Save Exercise</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+
 
     <script>
         // sort these by descending. each workout is grouped as a day
@@ -161,6 +224,7 @@
                 $('#exerciseModal').modal('show'); // Show the modal
             });
 
+            // Update exercise button event
             $('#workoutList').on('click', '.updateExerciseBtn', function() {
                 const exerciseItem = $(this).closest('.exercise-item');
                 const exerciseId = exerciseItem.data('exercise-id');
@@ -223,7 +287,7 @@
                 }
             }); 
 
-            // Add an event listener for the Close button
+            // Add an event listener for the Close button for update exercise modal
             $('.btn-secondary[data-bs-dismiss="modal"]').on('click', function() {
                 // Hide the modal
                 $('#exerciseModal').modal('hide');
@@ -250,7 +314,139 @@
             };    
 
             formatWorkoutDays(); // Call the function to format dates
+
+            // Add Goal Button
+            $('#workoutList').on('click', '.addGoalBtn', function () {
+                const workoutId = $(this).data('workout-id'); // Get workout ID from the button
+                console.log('Add Goal clicked', workoutId); // Debugging log
+                $('#goalModalLabel').text('Add Goal'); // Set modal title
+                $('#goalForm')[0].reset(); // Clear the form
+                $('#goalId').val(''); // Clear any goal ID
+                $('#workoutId').val(workoutId); // Set the workout ID
+                $('#goalModal').modal('show'); // Show the modal
+            });
+
+            // Save Goal Button
+            $('#saveGoal').click(function () {
+                const goalId = $('#goalId').val(); // Check if it's an update or add
+                const goalText = $('#goalText').val();
+                const workoutId = $('#workoutId').val();
+
+                if (!goalText.trim()) {
+                    toastr.error('Goal cannot be empty.');
+                    return;
+                }
+
+                if (goalId) {
+                    // Update goal if goalId exists
+                    updateGoal(goalId, 0, goalText); // Assuming '0' for not selected
+                } else {
+                    // Otherwise, create a new goal
+                    createGoal(workoutId, goalText);
+                }
+
+                $('#goalModal').modal('hide'); // Hide modal after save
+            });
+
+            // Edit Goal Button
+            $('#workoutList').on('click', '.updateGoalBtn', function () {
+                const goalId = $(this).data('goal-id'); // Get goal ID from the button
+                const goalText = $(this).closest('li').find('span').text(); // Get current goal text
+                $('#goalModalLabel').text('Update Goal'); // Set modal title
+                $('#goalId').val(goalId); // Set goal ID in the hidden field
+                $('#goalText').val(goalText); // Set goal text in the input field
+                $('#goalModal').modal('show'); // Show the modal
+            });
+
+            // Delete Goal Button
+            $('#workoutList').on('click', '.deleteGoalBtn', function () {
+                const goalId = $(this).data('goal-id'); // Get goal ID from the button
+                if (confirm('Are you sure you want to delete this goal?')) {
+                    deleteGoal(goalId); // Call deleteGoal function
+                }
+            });
         });
+
+        function createGoal(workoutId, goalText) {
+            // POST request to create a goal
+            fetch("/api/create_goal", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    workout_id: workoutId,
+                    goal: goalText
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 200) {
+                    toastr.success(data.msg); // Display success message
+                    location.reload(); // Reload the page to update the UI
+                } else {
+                    toastr.error(data.msg); // Display error message
+                }
+            })
+            .catch(error => {
+                console.error("Error creating goal:", error);
+                toastr.error("An error occurred while creating the goal.");
+            });
+        }
+
+        function deleteGoal(goalId) {
+            // POST request to delete a goal
+            fetch("/api/delete_goal", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    goal_id: goalId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 200) {
+                    toastr.success(data.msg); // Display success message
+                    location.reload(); // Reload the page to update the UI
+                } else {
+                    toastr.error(data.msg); // Display error message
+                }
+            })
+            .catch(error => {
+                console.error("Error deleting goal:", error);
+                toastr.error("An error occurred while deleting the goal.");
+            });
+        }
+
+        function updateGoal(goalId, selected, goalStr) {
+            // POST request to update a goal
+            fetch("/api/update_goal", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    goal_id: goalId,
+                    selected: selected,
+                    goal_str: goalStr
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 200) {
+                    toastr.success(data.msg); // Display success message
+                    location.reload(); // Reload the page to update the UI
+                } else {
+                    toastr.error(data.msg); // Display error message
+                }
+            })
+            .catch(error => {
+                console.error("Error updating goal:", error);
+                toastr.error("An error occurred while updating the goal.");
+            });
+        }
 
         function addExercise(workout_id, name, workout_type, weight=0, sets=0, reps=0, duration=0) {
             const exercise_data = {
@@ -373,57 +569,11 @@
             });
         }
 
-        function createGoal(workout_id, goal_str) {
-            fetch("/api/create_goal", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ 
-                    workout_id: workout_id,
-                    goal: goal_str })
-            })
-            .then(response => response.json())
-            .then(data => {
-                (data.status == 200) ? toastr.success(data.msg) : toastr.error(data.msg);
-            });
-        }
-
-        function deleteGoal(goal_id) {
-            fetch("/api/delete_goal", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ 
-                    goal_id: goal_id})
-            })
-            .then(response => response.json())
-            .then(data => {
-                (data.status == 200) ? toastr.success(data.msg) : toastr.error(data.msg);
-            });
-        }
-
-        function updateGoal(goal_id, selected, goal_str) {
-            fetch("/api/update_goal", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ 
-                    goal_id: goal_id,
-                    selected: selected,
-                    goal_str: goal_str})
-            })
-            .then(response => response.json())
-            .then(data => {
-                (data.status == 200) ? toastr.success(data.msg) : toastr.error(data.msg);
-            });
-        }
     </script>
 </div>
 
 <style>
+
     body {
         font-family: Arial, sans-serif;
         background-color: #d9ead3; /* Background color */
