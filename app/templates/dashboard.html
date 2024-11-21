@@ -360,7 +360,7 @@
             });
 
             // Delete Goal Button
-            $('#workoutList').on('click', '.deleteGoalBtn', function () {
+            $('#goalList').on('click', '.deleteGoalBtn', function () {
                 const goalId = $(this).data('goal-id'); // Get goal ID from the button
                 if (confirm('Are you sure you want to delete this goal?')) {
                     deleteGoal(goalId); // Call deleteGoal function
