@@ -63,7 +63,7 @@
         </div>  
  
         <!-- Goal Management Section -->
-        <div class="col-md-4">
+        <div id="goalList" class="col-md-4">
             <h2 class="text-center mb-4" style="margin-top: 90px;">Your Goals</h2>
             {% for workout in workouts %}
             <div class="card mb-3">
@@ -316,7 +316,7 @@
             formatWorkoutDays(); // Call the function to format dates
 
             // Add Goal Button
-            $('#workoutList').on('click', '.addGoalBtn', function () {
+            $('#goalList').on('click', '.addGoalBtn', function () {
                 const workoutId = $(this).data('workout-id'); // Get workout ID from the button
                 console.log('Add Goal clicked', workoutId); // Debugging log
                 $('#goalModalLabel').text('Add Goal'); // Set modal title
@@ -349,7 +349,8 @@
             });
 
             // Edit Goal Button
-            $('#workoutList').on('click', '.updateGoalBtn', function () {
+            $('#goalList').on('click', '.updateGoalBtn', function () {
+                console.log("Test")
                 const goalId = $(this).data('goal-id'); // Get goal ID from the button
                 const goalText = $(this).closest('li').find('span').text(); // Get current goal text
                 $('#goalModalLabel').text('Update Goal'); // Set modal title
